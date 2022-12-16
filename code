@@ -1,75 +1,146 @@
-#lang pl 2
-#|------------------Q1------------------|#
+#lang pl 02
 
 #|
-<char> ::= 0|1|2|3|4|5|6|7|8|9
+First of all we most say that the description of this assignment was'nt so clear, we hope that we figure the mission properly.
 
-<charseqe> ::= <char>
-               |<char><charseq>
+I wrote the number of the rule in the left side
 
-<form> ::= \#<char>
+1<char> ::= 0|1|2|3|4|5|6|7|8|9 // Only digits 0,...,9 are allowed as valid characters within strings
 
-<emptystring> ::= λ
+2<charseq> ::= <char>
+            3  | #\<char>
+            4 ||<emptystring>
+            5 |<char><charseq> //this rule creates sequences of chars
 
-<string> ::= "" || <form> | <<charseq>> | "<charseq>"
+6 <emptystring> ::= λ //as defined in the form of the assigment
 
-<stringseq> ::= <string> 
-                |<string><emptystring><stringseq> //with blank in the middle
+7 <number> ::= <natural>
+             8|{string-length <string>} //from this operation we get a number as a result
 
-<SE> :: = <charseq> | <stringseq>
-         |{string <SE>}
-         |{string-length <SE>}
-         |{string-append <SE><SE>}
-         |{string-insert <SE>}
-         |{number->string <SE>}
+9<string> ::= ""
+           10  |<<charseq>>
+           11  |"<charseq>" //<D>
+           13  |{string <charseq>}   //string  is allowed with a sequence of any number of characters. 
+           14  |{string-append <stringseq>}   //string-append is allowed with a sequence of any number of expressions that represent strings
+           15  |{string-insert <string><charseq><number>}   //string-insert is allowed with an expression that represents a string, a character, and a natural number.   
+           16  |{number->string <number>}                                         number->string is allowed with a natural number
 
+17 <stringseq> ::= <string>
+             18   ||<emptystring>
+             19   |<string><stringseq> 
+
+<SE> :: =20 <string> | 21 <number> | 22 <char>
+ 
+
+b.
 Derivation process:
 <SE> = ( string-append ( string #\1 #\2 #\4 ) "12" )
-(string-append <SE><SE>) => (string-append (string <SE>)<SE>) => (string-append (string <stringseq>)<SE>)
-=> (string-append (string <string><emptystring><stringseq>)<SE>)
-=>(string-append (string <form><emptystring><stringseq>)<SE>)
-=>(string-append (string \#<char><emptystring><stringseq>)<SE>)
-=>(string-append (string \#1λ<stringseq>)<SE>)//this process of stringseq is turning 3 times in the same way until the next step:
-=>(string-append (string \#1λ#\2λ<string>)<SE>)
-=>(string-append (string \#1λ#\2λ\#4)<SE>)
-=>(string-append (string \#1λ#\2λ\#4)<stringseq>)
-=>(string-append (string \#1λ#\2λ\#4)<string>)
-=>(string-append (string \#1λ#\2λ\#4)"<char><charseq>")
-=>(string-append (string \#1λ#\2λ\#4)"1<char>")
-=>(string-append (string \#1λ#\2λ\#4)"12")
+
+<SE> =20> <string> =14> (string-append <stringseq>) =19> (string-append <string><stringseq>)
+=13>(string-append (string <charseq>) <stringseq>)=5> (string-append (string <char><charseq>)<stringseq>)
+=3+2+1+5>(string-append (string #\1<char><charseq>)<stringseq>)
+=4+3+2+1+5>(string-append (string #\1λ#\2<char><charseq>)<stringseq>)
+=4+1>(string-append (string #\1λ#\2λ<char><char>)<stringseq>)
+=3+2+1>(string-append (string #\1λ#\2λ#\4)<stringseq>)
+=16>(string-append (string #\1λ#\2λ#\4)<string>)
+=11>(string-append (string #\1λ#\2λ#\4)"<charseq>")
+=5>(string-append (string #\1λ#\2λ#\4)"<char><charseq>")
+=1+2>(string-append (string #\1λ#\2λ#\4)"1<char>")
+=1>(string-append (string #\1λ#\2λ#\4)"12")
+
+
+<SE> = (number->string ( string-length "0033344" ))
+<SE> =16> ((number->string <number>)
+=8> (number->string ( string-length <String> ))
+=11>(number->string ( string-length "<charseq>" ))
+=5>(number->string ( string-length "<charseq>" ))
+=2+1+5>(number->string ( string-length "0<char><charseq>" )) //repeating until the end of the sequense
+=2>(number->string ( string-length "003334<char>" ))
+=1>(number->string ( string-length "0033344"))
+
+
+<SE> =(string-insert "1357" #\4 66 )
+<SE> =20> <string> =15> (string-insert <string><charseq><number>)
+=11>(string-insert "<charseq>"<charseq><number>)
+=2+1+5>(string-insert "1357"<char><number>) //repeating the step of the charseq until we get the number
+=5+5+2>(string-insert "1357"<char><char><char><number>)
+=4+3+2+1>(string-insert "1357"λ#\4<char><number>)
+=4>(string-insert "1357"λ#\4λ<number>)
+=7>(string-insert "1357"λ#\4λ66)
+
+
 |#
 
-#|------------------Q2------------------|#
-
+;;The "sum-of-squares" function,uses the "foldl" function to square every argument of the list
+;;and to add it to the sum
 (: squares : Number Number -> Number)
 (define (squares duble second)
   (+ second(* duble duble)))
-  
+
+(test (squares 2 0) =>
+      4)
+(test (squares 0 7) =>
+      7)
+(test (squares 6 -1) =>
+      35)
+(test (squares 0 0) =>
+      0)
+(test (squares -1 0) =>
+      1)
+(test (squares 5 1.0) =>
+      26.0)
+
 (: sum-of-squares : (Listof Number) -> Number)
 (define (sum-of-squares lt)
   (foldl squares 0 lt)
  )
+;;exaple how it looks:
+;;(sum-of-squares (1 2 3): (squares 3(squares 2(squares 1 0)))->
+;;[it's a little bit longer but this is the main idea](+ (1*1) (2*2) (3*3))=14
 
-(test (sum-of-squares '(1 2 3)) => 14)
-(test (sum-of-squares '(3 2 1)) => 14)
-(test (sum-of-squares '(5 4 8 9 10)) => 286)
-(test (sum-of-squares '(0)) => 0)
-(test (sum-of-squares '(1)) => 1)
-(test (sum-of-squares '(-1)) => 1)
-(test (sum-of-squares '(-1 -2 -3)) => 14)
-
+(test (sum-of-squares '(1 2 3)) =>
+      14)
+(test (sum-of-squares '(3 2 1)) =>
+      14)
+(test (sum-of-squares '(5 4 8 9 10)) =>
+      286)
+(test (sum-of-squares '(1.0 5)) =>
+      26.0)
+(test (sum-of-squares '(0)) =>
+      0)
+(test (sum-of-squares '(1)) =>
+      1)
+(test (sum-of-squares '(-1)) =>
+      1)
+(test (sum-of-squares '(-1 -2 -3)) =>
+      14)
+(test (sum-of-squares '(0.0 1)) =>
+      1.0)
+(test (sum-of-squares '()) =>
+      0)
+(test (sum-of-squares null) =>
+      0)
+(test (sum-of-squares '(-inf.0 1 2 3 4)) =>
+      +inf.0)
 
 #|------------------Q3-A------------------|#
 
-
-(: createPolynomial : (Listof Number) -> (Number -> Number)) 
+#|
+The function createPolynomial know how to takes as arguments a list of n numbers a0, ... , ak-1
+and returns as output a function which is defined by the received input.
+The returned function takes a number x0 and return the
+value of the polynom a0 ⋅ x0 + ⋯ + ak-1 ⋅ xn-1 at x0
+|# 
+(: createPolynomial : (Listof Number) -> (Number -> Number)) ;;defining a function that returns a function
 (define (createPolynomial coeffs) 
-  (: poly : (Listof Number) Number Integer Number -> 
-Number) 
+  (: poly : (Listof Number) Number Integer Number -> Number) 
   (define (poly argsL x power accum) 
-     (if (null? argsL)  
+     (if (null? argsL) ;;if there is no items left in the list,return the sum 
          accum
-         (poly (rest argsL) x (+ power 1) (+ accum (* (first argsL) (expt x power))))))
+;;recursive opreration that takes the arguments of the "poly" function end each recursion taking the first element of the rest of the list
+;;adding 1 to the power (each time the power increase),
+;;and summing the results of the powers
+  (poly (rest argsL) x (+ power 1) (+ accum (* (first argsL) (expt x power))))))
   (: polyX : Number -> Number) 
   (define (polyX x)
     (poly coeffs x 0 0))
@@ -93,9 +164,25 @@ polyX)
 (test (p536 11) =>
       (+ (* 5 (expt 11 0)) (* 3 (expt 11 1)) (* 6 (expt 11 2)))) 
  
-(define p_0 (createPolynomial '())) (test (p_0 4) =>
-                                          0) 
+(define p_0 (createPolynomial '()))
 
+(test (p_0 4) =>
+       0)
+
+(define p-1-2-3-4 (createPolynomial '(-1 -2 -3 -4)))
+
+(test (p-1-2-3-4 0) =>
+ (+ (* -1 (expt 0 0)) (* -2 (expt 0 1)) (* -3(expt 0 2)) (* -4
+(expt 0 3))))
+
+(test (p-1-2-3-4 5) =>
+ (+ (* -1 (expt 5 0)) (* -2 (expt 5 1)) (* -3(expt 5 2)) (* -4
+(expt 5 3))))
+
+(define p-35.5 (createPolynomial '(-35.5)))
+
+(test (p-35.5 11) =>
+      (* -35.5 (expt 11 0)))
 
 #|------------------Q3-B1------------------|#
 
@@ -124,7 +211,7 @@ polyX)
     [Sub  AE AE] 
     [Mul  AE AE] 
     [Div  AE AE])
-
+;;the next two functions parsing s-expressions to AE expressions
   (: parse-sexpr : Sexpr -> AE) 
   (define (parse-sexpr sexpr) 
     (match sexpr 
@@ -135,14 +222,42 @@ polyX)
       [(list '/ lhs rhs) (Div (parse-sexpr lhs)(parse-sexpr rhs))] 
       [else (error 'parse-sexpr "bad syntax in ~s" sexpr)]))
 
-  (: parse-sexprB : (Listof Sexpr) -> (Listof AE))
-  (define (parse-sexprB sexpr_list)
-(if (null? sexpr_list)
+(test (parse-sexpr '(+ 1 1)) =>
+      (Add (Num 1) (Num 1)))
+(test (parse-sexpr '(- 1 1)) =>
+      (Sub (Num 1) (Num 1)))
+(test (parse-sexpr '(* 1 1)) =>
+      (Mul (Num 1) (Num 1)))
+(test (parse-sexpr '(/ 1 1)) =>
+      (Div (Num 1) (Num 1)))
+(test (parse-sexpr '(-- 1 1)) =error>
+      "bad syntax in (-- 1 1)" )
+(test (parse-sexpr '(/ 1 0)) =>
+      (Div (Num 1) (Num 0))) ; This test didnt give as a feedback like "bad syntax in (/ 1 0)" because this is the parsing part!!
+                             ; This expression is syntactically correct!
+
+(: parse-sexprB : (Listof Sexpr) -> (Listof AE));AEs is actually a list of AE..
+(define (parse-sexprB sexpr_list) ;; Here we converting a list of s-expressions into a list of AEs
+  (if (null? sexpr_list)
         null
         (cons (parse-sexpr (first sexpr_list))(parse-sexprB (rest sexpr_list))))
     )
 
-   
+(test (parse-sexprB '((+ 2 3))) =>
+      (list (Add (Num 2) (Num 3))))
+(test (parse-sexprB '((- 2 3))) =>
+      (list (Sub (Num 2) (Num 3))))
+(test (parse-sexprB '((/ 2 3))) =>
+      (list (Div (Num 2) (Num 3))))
+(test (parse-sexprB '((* 2 3))) =>
+      (list (Mul (Num 2) (Num 3))))
+(test (parse-sexprB '((/ 2 0))) =>
+      (list (Div (Num 2) (Num 0)))) ; Again, its only parsing so its should be fine..
+(test (parse-sexprB '())
+      => null)
+(test (parse-sexprB null)
+      => null)
+
 (: parse : String -> PLANG) 
 ;; parses a string containing a PLANG expression to a PLANG AST
  (define (parse str) 
@@ -158,8 +273,72 @@ polyX)
      => (Poly (list (Num 1) (Num 2) (Num 3))  
               (list (Num 1) (Num 2) (Num 3))))
 
+(test (parse "{{poly 1 2 3} {0}}")  
+     => (Poly (list (Num 1) (Num 2) (Num 3))  
+              (list (Num 0))))
+
 (test (parse "{{poly } {1 2} }")  
      =error> "parse: at least one coefficient is required in ((poly) (1 2))")
 
 (test (parse "{{poly 1 2} {} }") =error>
       "parse: at least one point is required in ((poly 1 2) ())")
+
+(test (parse "{{+ 1 - 2} {} }") =error>
+      "parse-sexpr: bad syntax in ((+ 1 - 2) ())")
+
+#|------------------Q3-B3------------------|#
+
+
+;; evaluates AE expressions to numbers
+  (: eval : AE -> Number)
+  (define (eval expr) 
+    (cases expr 
+      [(Num n)  n] 
+      [(Add l r) (+ (eval l) (eval r))] 
+      [(Sub l r) (- (eval l) (eval r))] 
+      [(Mul l r) (* (eval l) (eval r))] 
+      [(Div l r) (/ (eval l) (eval r))]))
+
+  (: eval-poly : PLANG ->   (Listof Number) ) 
+  (define (eval-poly p-expr) 
+     (cases p-expr
+      [(Poly x y)
+       (map (createPolynomial (map eval x)) (map eval y))];;map gets procedure-in this case it's the function that "createPolynomial" returns,
+       ;;and a list (this is the second argument in "run" function
+      ))
+
+#|
+This function actually runs the entire program (parse+eval)
+receives a string and activates eval-poly with an input of parse str, which
+creates 2 separate runs of the language first the parse process
+on the string and then the evaluation on the input (which of course should
+arrive as a correct syntax)
+|#
+  (: run : String -> (Listof Number)) 
+  ;; evaluate a FLANG program contained in a string 
+  (define (run str) 
+    (eval-poly (parse str))) 
+
+
+(test (run "{{poly 1 2 3} {1 2 3}}")  
+      => '(6 17 34)) 
+(test (run "{{poly 4 2 7} {1 4 9}}")
+      => '(13 124 589)) 
+(test (run "{{poly 1 2 3} {1 2 3}}")
+      => '(6 17 34)) 
+(test (run "{{poly 4/5 } {1/2 2/3 3}}")  
+      => '(4/5 4/5 4/5)) 
+(test (run "{{poly 2 3} {4}}")
+      => '(14)) 
+(test (run "{{poly 1 1 0} {-1 3 3}}")
+      => '(0 4 4))  
+(test (run "{{poly {/ 4 2} {- 4 1}} {{- 8 4}}}") 
+      => '(14)) 
+(test (run "{{poly {+ 0 1} 1 {* 0 9}} {{- 4 5} 3 
+{/ 27 9}}}") 
+      => '(0 4 4))
+(test (run "{{poly 0 0 0} {0 0 0}}")  
+      => '(0 0 0))
+(test (run "{{poly 1} {0}}")  
+=> '(1))
+
