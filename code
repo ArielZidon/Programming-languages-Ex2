@@ -1,5 +1,4 @@
-#lang pl 02
-
+#lang pl 2
 #|
 First of all we most say that the description of this assignment was'nt so clear, we hope that we figure the mission properly.
 
@@ -27,9 +26,9 @@ I wrote the number of the rule in the left side
 
 17 <stringseq> ::= <string>
              18   ||<emptystring>
-             19   |<string><stringseq> 
+             19   |<string><stringseq> //here we creates sequence of strings
 
-<SE> :: =20 <string> | 21 <number> | 22 <char>
+<SE> :: =20 <string> | 21 <number> | 22 <char> //from here you can get all the language
  
 
 b.
@@ -50,6 +49,7 @@ Derivation process:
 
 
 <SE> = (number->string ( string-length "0033344" ))
+
 <SE> =16> ((number->string <number>)
 =8> (number->string ( string-length <String> ))
 =11>(number->string ( string-length "<charseq>" ))
@@ -60,6 +60,7 @@ Derivation process:
 
 
 <SE> =(string-insert "1357" #\4 66 )
+
 <SE> =20> <string> =15> (string-insert <string><charseq><number>)
 =11>(string-insert "<charseq>"<charseq><number>)
 =2+1+5>(string-insert "1357"<char><number>) //repeating the step of the charseq until we get the number
@@ -202,6 +203,7 @@ polyX)
 
 #|------------------Q3-B2------------------|#
 
+;;definittion of the types PLANG and AE:
   (define-type PLANG 
     [Poly (Listof AE) (Listof AE)]) 
  
@@ -211,6 +213,7 @@ polyX)
     [Sub  AE AE] 
     [Mul  AE AE] 
     [Div  AE AE])
+
 ;;the next two functions parsing s-expressions to AE expressions
   (: parse-sexpr : Sexpr -> AE) 
   (define (parse-sexpr sexpr) 
@@ -233,7 +236,7 @@ polyX)
 (test (parse-sexpr '(-- 1 1)) =error>
       "bad syntax in (-- 1 1)" )
 (test (parse-sexpr '(/ 1 0)) =>
-      (Div (Num 1) (Num 0))) ; This test didnt give as a feedback like "bad syntax in (/ 1 0)" because this is the parsing part!!
+      (Div (Num 1) (Num 0))) ; This test didn't give as a feedback like "bad syntax in (/ 1 0)" because this is the parsing part!!
                              ; This expression is syntactically correct!
 
 (: parse-sexprB : (Listof Sexpr) -> (Listof AE));AEs is actually a list of AE..
@@ -265,7 +268,7 @@ polyX)
       (match code
       [(list (list 'poly c ...) (list )) (error 'parse-sexpr "parse: at least one point is required in ~s" code)]
       [(list (list 'poly) (list p ...)) (error 'parse-sexpr "parse: at least one coefficient is required in ~s" code)]
-      [(list (list 'poly c ...) (list p ...)) (Poly (parse-sexprB c) (parse-sexprB p))] 
+      [(list (list 'poly c ...) (list p ...)) (Poly (parse-sexprB c) (parse-sexprB p))] ;;The only option that returns a valid expression
       [else (error 'parse-sexpr "bad syntax in ~s" code)])))
 
 
@@ -299,12 +302,14 @@ polyX)
       [(Mul l r) (* (eval l) (eval r))] 
       [(Div l r) (/ (eval l) (eval r))]))
 
+;;This function takes PLANG (Poly (Listof AE) (Listof AE)) and returns list of the numbers
+;;the expressions in the left side of the PLANG are evaluated to coefficients and the expressions in the right side are evaluated to numbers on which we evaluate the polynomial.
   (: eval-poly : PLANG ->   (Listof Number) ) 
   (define (eval-poly p-expr) 
      (cases p-expr
       [(Poly x y)
-       (map (createPolynomial (map eval x)) (map eval y))];;map gets procedure-in this case it's the function that "createPolynomial" returns,
-       ;;and a list (this is the second argument in "run" function
+       (map (createPolynomial (map eval x)) (map eval y))];;map gets procedure- in this case it's the function that "createPolynomial" returns,
+       ;;and a list
       ))
 
 #|
@@ -341,4 +346,3 @@ arrive as a correct syntax)
       => '(0 0 0))
 (test (run "{{poly 1} {0}}")  
 => '(1))
-
